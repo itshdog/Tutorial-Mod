@@ -48,6 +48,24 @@ namespace Tutorial
         public void Awake()
         {
 
+            On.EntityStates.Commando.SlideState.OnEnter += (orig, self) =>
+            {
+                ChatMessage.Send("[You]: *Gracefully slides ass across the ground*");
+                orig(self);
+            };
+
+            On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter += (orig, self) =>
+            {
+                ChatMessage.Send("[You]: Pew!");
+                orig(self);
+            };
+
+            On.EntityStates.Commando.CommandoWeapon.FireShotgunBlast.OnEnter += (orig, self) =>
+            {
+                ChatMessage.Send("[You]: Big Pew!");
+                orig(self);
+            };
+
             //loads an asset bundle if one exists. Objects will need to be called from this bundle using AssetBundle.LoadAsset(string path)
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Tutorial.mod_assets"))
             {
@@ -69,13 +87,11 @@ namespace Tutorial
 
             //runs hooks that are seperate from all additions (i.e, if you need to call something when the game runs or at special times)
             Hooks();
+        }
 
-            On.EntityStates.Huntress.AimArrowSnipe.OnEnter += (orig, self) =>
-            {
-                ChatMessage.Send("Ay it's the frickin Bat!");
-                orig(self);
-            };
-
+        private void FirePistol2_FireBullet(On.EntityStates.Commando.CommandoWeapon.FirePistol2.orig_FireBullet orig, EntityStates.Commando.CommandoWeapon.FirePistol2 self, string targetMuzzle)
+        {
+            throw new NotImplementedException();
         }
 
         public void Configs()
