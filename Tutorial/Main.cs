@@ -70,6 +70,12 @@ namespace Tutorial
             //runs hooks that are seperate from all additions (i.e, if you need to call something when the game runs or at special times)
             Hooks();
 
+            On.EntityStates.Huntress.AimArrowSnipe.OnEnter += (orig, self) =>
+            {
+                ChatMessage.Send("Ay it's the frickin Bat!");
+                orig(self);
+            };
+
         }
 
         public void Configs()
