@@ -41,12 +41,34 @@ namespace Tutorial
 
         //"com.USERNAME.MODNAME"
         public const string ModGUID = "com.itshdog.tutorial";
-        public const string ModName = "itshdog Tutorial";
+        public const string ModName = "Mr. Sarcasm";
         //"MAJORVERSION.MINORPATCH.BUGFIX". Ex: 1.2.3 is Major Release 1, Patch 2, Bug Fix 3.
-        public const string ModVersion = "0.0.1";
+        public const string ModVersion = "0.0.2";
         public static AssetBundle Assets;
+        public static ConfigEntry<string> MrSarcasmName { get; set; }
         public static ConfigEntry<string> CommandoSlideMessage { get; set; }
         public static ConfigEntry<string> CommandoShootMessage { get; set; }
+        public static ConfigEntry<int> WhiteItemDrop { get; set; }
+        public static ConfigEntry<int> GreenItemDrop { get; set; }
+        public static ConfigEntry<int> RedItemDrop { get; set; }
+
+        // Generates "sArCaStIc" messages
+        public String sarcastic(string input)
+        {
+            string output = string.Empty;
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (i%2 == 1)
+                {
+                    output += char.ToLower(input[i]);
+                }
+                else
+                {
+                    output += char.ToUpper(input[i]);
+                }
+            }
+            return output;
+        }
 
         public void Awake()
         {
@@ -54,18 +76,41 @@ namespace Tutorial
             Chat.AddMessage("Mr.Sarcasm v0.0.1 Loaded!");
 
             // Config
+            MrSarcasmName = Config.Bind<string>(
+                "Mr. Sarcasm",
+                "Name",
+                "Mr. Sarcasm",
+                "The name on chat messages when Mr. Sarcasm is called."
+            );
             CommandoSlideMessage = Config.Bind<string>(
                 "Commando",
                 "SlideMessage",
                 "*Gracefully slides ass across the ground*",
                 "This is the message which is played when SlideState.OnEnter is called"
             );
-
             CommandoShootMessage = Config.Bind<string>(
                 "Commando",
                 "ShootMessage",
                 "Pew! Pew! Pew!",
                 "This is the message which is played when FirePistol2.OnEnter is called"
+            );
+            WhiteItemDrop = Config.Bind<int>(
+                "Drop Message Chance",
+                "White Items",
+                10,
+                "The chance (X/100) for getting a sarcastic message"
+            );
+            GreenItemDrop = Config.Bind<int>(
+                "Drop Message Chance",
+                "Green Items",
+                25,
+                "The chance (X/100) for getting a sarcastic message"
+            );
+            RedItemDrop = Config.Bind<int>(
+                "Drop Message Chance",
+                "Red Items",
+                100,
+                "The chance (X/100) for getting a sarcastic message"
             );
 
             // Main
@@ -75,7 +120,7 @@ namespace Tutorial
             {
                 int chance = rand.Next(1, 101);
 
-                if (chance <= 25)
+                if (chance <= 10)
                 {
                     ChatMessage.SendColored(CommandoSlideMessage.Value, Color.gray);
                     orig(self);
@@ -89,7 +134,7 @@ namespace Tutorial
             {
                 int chance = rand.Next(1, 101);
 
-                if (chance <= 5)
+                if (chance <= 2)
                 {
                     ChatMessage.SendColored(CommandoShootMessage.Value, Color.grey);
                     orig(self);
@@ -98,6 +143,8 @@ namespace Tutorial
                     orig(self);
                 }
             };
+
+            On.RoR2.PickupDropletController.CreatePickupDroplet += PickupDropletController_CreatePickupDroplet;
 
             //loads an asset bundle if one exists. Objects will need to be called from this bundle using AssetBundle.LoadAsset(string path)
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Tutorial.mod_assets"))
@@ -124,10 +171,71 @@ namespace Tutorial
 
         private void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet orig, PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
-            if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.Hoof.itemIndex))
+            var rand = new System.Random();
+            int chance = rand.Next(1, 101);
+
+            // White Items
+            if (chance <= WhiteItemDrop.Value)
             {
-                Chat.AddMessage("Goat lookin' ass LMAOO");
-                ChatMessage.Send("GOTTA RUN FAST!");
+                // Personal Shield Generator
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.PersonalShield.itemIndex))
+                {
+                    ChatMessage.Send("Yeah, PSG is more your speed LOL", MrSarcasmName.Value);
+                }
+                // Goat Hoof
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.Hoof.itemIndex))
+                {
+                    ChatMessage.Send("You might need this, you're a bit slow", MrSarcasmName.Value);
+                }
+                // Replusion Armor Plate
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.ArmorPlate.itemIndex))
+                {
+                    ChatMessage.Send("I saw you lost a lot of health before, so take an Armor Plate", MrSarcasmName.Value);
+                }
+                // Mocha
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.BoostAttackSpeed.itemIndex))
+                {
+                    ChatMessage.Send("i NeEd MoChA tO bE gOoD", MrSarcasmName.Value);
+                }
+                // Topaz Brooch
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.BarrierOnKill.itemIndex))
+                {
+                    ChatMessage.Send(sarcastic(RoR2Content.Items.BarrierOnKill.nameToken), MrSarcasmName.Value);
+                }
+            }
+
+            // Green Items
+            if (chance <= GreenItemDrop.Value)
+            {
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.ChainLightning.itemIndex))
+                {
+                    ChatMessage.Send(sarcastic(RoR2Content.Items.ChainLightning.nameToken), MrSarcasmName.Value);
+                }
+            }
+
+            // Red Items
+            if (chance <= RedItemDrop.Value)
+            {
+                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.Clover.itemIndex))
+                {
+                    name = RoR2.Language.GetString(pickupIndex.GetPickupNameToken());
+                    ChatMessage.Send(sarcastic(name), MrSarcasmName.Value);
+                }
+            }
+
+            // Lunar Items
+
+            // Void Items
+
+            // Boss Items
+
+            // Equipment
+
+            // Extra Roll Chance!
+            if (chance >= 97)
+            {
+                ChatMessage.Send("Ok, I'm feeling a little generous today...", MrSarcasmName.Value);
+                orig(pickupIndex, position, velocity);
             }
             orig(pickupIndex, position, velocity);
         }
