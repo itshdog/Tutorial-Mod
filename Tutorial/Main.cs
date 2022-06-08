@@ -40,17 +40,14 @@ namespace Tutorial
     {
 
         //"com.USERNAME.MODNAME"
-        public const string ModGUID = "com.itshdog.tutorial";
+        public const string ModGUID = "com.itshdog.mrsarcasm";
         public const string ModName = "Mr. Sarcasm";
         //"MAJORVERSION.MINORPATCH.BUGFIX". Ex: 1.2.3 is Major Release 1, Patch 2, Bug Fix 3.
-        public const string ModVersion = "0.0.2";
+        public const string ModVersion = "0.1.0";
         public static AssetBundle Assets;
+        public string chatColor = "#ccd3e0";
         public static ConfigEntry<string> MrSarcasmName { get; set; }
-        public static ConfigEntry<string> CommandoSlideMessage { get; set; }
-        public static ConfigEntry<string> CommandoShootMessage { get; set; }
-        public static ConfigEntry<int> WhiteItemDrop { get; set; }
-        public static ConfigEntry<int> GreenItemDrop { get; set; }
-        public static ConfigEntry<int> RedItemDrop { get; set; }
+        public static ConfigEntry<int> MessageChance { get; set; }
 
         // Generates "sArCaStIc" messages
         public String sarcastic(string input)
@@ -70,10 +67,32 @@ namespace Tutorial
             return output;
         }
 
+        public String sarcasticSentence(string name)
+        {
+            string[] sentences =
+            {
+                "I thought you might like {}",
+                "You might die with {}",
+                "I know you need {}, otherwise you'll probably lose",
+                "You need {} to be good lol",
+                "without {}, I know you might die",
+                "I wanna see you try to use {}",
+                "Do you even use {}?",
+                "I'm not even sure you know what {} is...",
+                "oo I'm being generous with {}",
+                "You will need {}, you're a bit slow",
+                "Even my mom can do better than a {}"
+            };
+            var rand = new System.Random();
+            int index = rand.Next(0, sentences.Length);
+            string output = sentences[index].Replace("{}", name);
+            return sarcastic(output);
+        }
+
         public void Awake()
         {
             // Initial Load Message
-            Chat.AddMessage("Mr.Sarcasm v0.0.1 Loaded!");
+            Chat.AddMessage("Mr.Sarcasm v0.0.2 Loaded!");
 
             // Config
             MrSarcasmName = Config.Bind<string>(
@@ -82,67 +101,12 @@ namespace Tutorial
                 "Mr. Sarcasm",
                 "The name on chat messages when Mr. Sarcasm is called."
             );
-            CommandoSlideMessage = Config.Bind<string>(
-                "Commando",
-                "SlideMessage",
-                "*Gracefully slides ass across the ground*",
-                "This is the message which is played when SlideState.OnEnter is called"
-            );
-            CommandoShootMessage = Config.Bind<string>(
-                "Commando",
-                "ShootMessage",
-                "Pew! Pew! Pew!",
-                "This is the message which is played when FirePistol2.OnEnter is called"
-            );
-            WhiteItemDrop = Config.Bind<int>(
+            MessageChance = Config.Bind<int>(
                 "Drop Message Chance",
                 "White Items",
-                10,
+                50,
                 "The chance (X/100) for getting a sarcastic message"
             );
-            GreenItemDrop = Config.Bind<int>(
-                "Drop Message Chance",
-                "Green Items",
-                25,
-                "The chance (X/100) for getting a sarcastic message"
-            );
-            RedItemDrop = Config.Bind<int>(
-                "Drop Message Chance",
-                "Red Items",
-                100,
-                "The chance (X/100) for getting a sarcastic message"
-            );
-
-            // Main
-            var rand = new System.Random();
-
-            On.EntityStates.Commando.SlideState.OnEnter += (orig, self) =>
-            {
-                int chance = rand.Next(1, 101);
-
-                if (chance <= 10)
-                {
-                    ChatMessage.SendColored(CommandoSlideMessage.Value, Color.gray);
-                    orig(self);
-                } else
-                {
-                    orig(self);
-                }
-            };
-
-            On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter += (orig, self) =>
-            {
-                int chance = rand.Next(1, 101);
-
-                if (chance <= 2)
-                {
-                    ChatMessage.SendColored(CommandoShootMessage.Value, Color.grey);
-                    orig(self);
-                } else
-                {
-                    orig(self);
-                }
-            };
 
             On.RoR2.PickupDropletController.CreatePickupDroplet += PickupDropletController_CreatePickupDroplet;
 
@@ -175,7 +139,7 @@ namespace Tutorial
             int chance = rand.Next(1, 101);
 
             // White Items
-            if (chance <= WhiteItemDrop.Value)
+            if (chance <= MessageChance.Value)
             {
                 // Personal Shield Generator
                 if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.PersonalShield.itemIndex))
@@ -183,66 +147,35 @@ namespace Tutorial
                     ChatMessage.Send("Yeah, PSG is more your speed LOL", MrSarcasmName.Value);
                 }
                 // Goat Hoof
-                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.Hoof.itemIndex))
+                else if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.Hoof.itemIndex))
                 {
                     ChatMessage.Send("You might need this, you're a bit slow", MrSarcasmName.Value);
                 }
                 // Replusion Armor Plate
-                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.ArmorPlate.itemIndex))
+                else if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.ArmorPlate.itemIndex))
                 {
                     ChatMessage.Send("I saw you lost a lot of health before, so take an Armor Plate", MrSarcasmName.Value);
                 }
                 // Mocha
-                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.BoostAttackSpeed.itemIndex))
+                else if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.BoostAttackSpeed.itemIndex))
                 {
                     ChatMessage.Send("i NeEd MoChA tO bE gOoD", MrSarcasmName.Value);
                 }
-                // Topaz Brooch
-                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.BarrierOnKill.itemIndex))
-                {
-                    ChatMessage.Send(sarcastic(RoR2Content.Items.BarrierOnKill.nameToken), MrSarcasmName.Value);
-                }
-            }
-
-            // Green Items
-            if (chance <= GreenItemDrop.Value)
-            {
-                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.ChainLightning.itemIndex))
-                {
-                    ChatMessage.Send(sarcastic(RoR2Content.Items.ChainLightning.nameToken), MrSarcasmName.Value);
-                }
-            }
-
-            // Red Items
-            if (chance <= RedItemDrop.Value)
-            {
-                if (pickupIndex == PickupCatalog.FindPickupIndex(RoR2Content.Items.Clover.itemIndex))
+                // Anything Else
+                else
                 {
                     name = RoR2.Language.GetString(pickupIndex.GetPickupNameToken());
-                    ChatMessage.Send(sarcastic(name), MrSarcasmName.Value);
+                    ChatMessage.SendColored(sarcasticSentence(name), "#ccd3e0", MrSarcasmName.Value);
                 }
             }
-
-            // Lunar Items
-
-            // Void Items
-
-            // Boss Items
-
-            // Equipment
 
             // Extra Roll Chance!
             if (chance >= 97)
             {
-                ChatMessage.Send("Ok, I'm feeling a little generous today...", MrSarcasmName.Value);
+                ChatMessage.SendColored("Ok, I'm feeling a little generous today...", chatColor, MrSarcasmName.Value);
                 orig(pickupIndex, position, velocity);
             }
             orig(pickupIndex, position, velocity);
-        }
-
-        private void FirePistol2_FireBullet(On.EntityStates.Commando.CommandoWeapon.FirePistol2.orig_FireBullet orig, EntityStates.Commando.CommandoWeapon.FirePistol2 self, string targetMuzzle)
-        {
-            throw new NotImplementedException();
         }
 
         public void Configs()
